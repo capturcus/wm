@@ -1,18 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/disintegration/imaging"
 	"github.com/go-ini/ini"
+	"github.com/sirupsen/logrus"
 
 	_ "image/jpeg"
+
+	wf "EMPTY_TEMPLATE/webframework"
 )
 
 /*
@@ -20,26 +23,42 @@ const (
 	WM_COUNTS = 4
 )*/
 
-func detonate(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
 func main() {
-	cfg, err := ini.Load("wm.ini")
-	detonate(err)
+
+	exeDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	logrus.SetFormatter(&wf.ErrorFormatter{})
+	logrus.SetLevel(logrus.DebugLevel)
+	errorFile, _ := os.Create(exeDir + "/error.txt")
+	logrus.SetOutput(errorFile)
+
+	cfg, err := ini.Load(exeDir + "/wm.ini")
+	if err != nil {
+		wf.Fatal(err)
+	}
 	WM_OFFSET, err := cfg.Section("").Key("wm_offset").Int()
-	detonate(err)
+	if err != nil {
+		wf.Fatal(err)
+	}
 	OPACITY, err := cfg.Section("").Key("opacity").Float64()
-	detonate(err)
+	if err != nil {
+		wf.Fatal(err)
+	}
 	ANGLE, err := cfg.Section("").Key("angle").Float64()
-	detonate(err)
+	if err != nil {
+		wf.Fatal(err)
+	}
+
+	ioutil.WriteFile("debug.txt", []byte(os.Args[1]), os.ModeExclusive)
 
 	targetImg, err := imaging.Open(os.Args[1])
-	detonate(err)
+	if err != nil {
+		wf.Fatal(err)
+	}
 	wmImg, err := imaging.Open("wm.png")
-	detonate(err)
+	if err != nil {
+		wf.Fatal(err)
+	}
 
 	rgba := image.NewRGBA(targetImg.Bounds())
 
@@ -60,7 +79,7 @@ func main() {
 
 	out, err := os.Create(name + ".wm.png")
 	if err != nil {
-		fmt.Println(err)
+		wf.Fatal(err)
 	}
 
 	png.Encode(out, rgba)
