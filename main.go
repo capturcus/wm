@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -49,13 +48,11 @@ func main() {
 		wf.Fatal(err)
 	}
 
-	ioutil.WriteFile("debug.txt", []byte(os.Args[1]), os.ModeExclusive)
-
 	targetImg, err := imaging.Open(os.Args[1])
 	if err != nil {
 		wf.Fatal(err)
 	}
-	wmImg, err := imaging.Open("wm.png")
+	wmImg, err := imaging.Open(exeDir + "/wm.png")
 	if err != nil {
 		wf.Fatal(err)
 	}
